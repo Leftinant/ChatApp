@@ -1,67 +1,61 @@
-import React, { useState, useEffect } from "react";
+import { useEffect, useState } from "react";
 import { io } from "socket.io-client";
-import ChatWindow from "./components/ChatWindow";
 import OnlineUsers from "./components/OnlineUsers";
+import ChatWindow from "./components/ChatWindow";
 
 const socket = io("http://localhost:5000");
 
+socket.on("connect_error", (err) => {
+  console.error("Socket connection error:", err.message);
+});
+
 function App() {
   const [username, setUsername] = useState("");
+  const [loggedIn, setLoggedIn] = useState(false);
   const [selectedUser, setSelectedUser] = useState(null);
-  const [onlineUsers, setOnlineUsers] = useState([]);
 
-  useEffect(() => {
-    socket.on("online-users", (users) => {
-      setOnlineUsers(users.filter((u) => u !== username));
-    });
-
-    socket.on("connect", () => {
-      if (username) {
-        socket.emit("join", username);
-      }
-    });
-
-    return () => socket.disconnect();
-  }, [username]);
-
-  const handleLogin = () => {
+  const handleJoin = () => {
     if (username.trim()) {
       socket.emit("join", username);
+      setLoggedIn(true);
     }
   };
 
-  if (!username) {
-    return (
-      <div className='h-screen flex items-center justify-center bg-base-200'>
-        <div className='card p-8 bg-base-100 shadow-xl'>
-          <h2 className='text-xl font-bold mb-4'>Enter your username</h2>
+  useEffect(() => {
+    if (socket && username) {
+      socket.emit("join", username);
+    }
+  }, [socket, username]);
+
+  return (
+    <div className='h-screen bg-base-200'>
+      {!loggedIn ? (
+        <div className='flex flex-col items-center justify-center h-full'>
+          <h1 className='text-3xl font-bold mb-6'>Realtime Chat</h1>
           <input
-            type='text'
-            placeholder='Username'
-            className='input input-bordered w-full mb-4'
+            className='input input-bordered w-full max-w-xs'
+            placeholder='Enter your username'
             value={username}
             onChange={(e) => setUsername(e.target.value)}
           />
-          <button className='btn btn-primary w-full' onClick={handleLogin}>
+          <button className='btn mt-4' onClick={handleJoin}>
             Join Chat
           </button>
         </div>
-      </div>
-    );
-  }
-
-  return (
-    <div className='h-screen flex bg-base-100'>
-      <OnlineUsers
-        users={onlineUsers}
-        onSelect={setSelectedUser}
-        selected={selectedUser}
-      />
-      <ChatWindow
-        socket={socket}
-        username={username}
-        selectedUser={selectedUser}
-      />
+      ) : (
+        <div className='flex h-full'>
+          <OnlineUsers
+            socket={socket}
+            username={username}
+            onSelectUser={setSelectedUser}
+          />
+          <ChatWindow
+            socket={socket}
+            username={username}
+            selectedUser={selectedUser}
+          />
+        </div>
+      )}
     </div>
   );
 }
