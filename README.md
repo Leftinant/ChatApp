@@ -10,9 +10,8 @@ This is a fully responsive real-time chat application inspired by Telegram's UI.
 - 🧑‍🤝‍🧑 Global chat and private messaging structure
 - ✍️ Typing indicators
 - 👀 Online/offline user status
-- 📱 Responsive Telegram-style UI
 - 💬 Scrollable message list with timestamps
-- 🧭 Sidebar with user list and search
+- 🧭 Sidebar with user list
 
 ---
 
